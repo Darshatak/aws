@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Node.js Lambda with API Gateway (Dev & Prod)
+Description: Node.js API with AWS Lambda and API Gateway
 
 Globals:
   Function:
@@ -16,36 +16,28 @@ Parameters:
       - prod
 
 Resources:
-  MyApiGateway:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: my-api-gateway
-      StageName: !Ref Environment
-
-  MyLambdaFunction:
+  MyApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub my-custom-api-${Environment}
-      Handler: server.handler
+      FunctionName: my-node-api
+      Handler: lambda.handler
       Runtime: nodejs18.x
       CodeUri: .
       Policies:
         - AWSLambdaBasicExecutionRole
       Events:
-        CustomApi:
+        FactorialApi:
           Type: Api
           Properties:
-            RestApiId: !Ref MyApiGateway
-            Path: /custom-api
+            Path: /factorial/{number}
             Method: GET
-        ExampleApi:
+        ReverseStringApi:
           Type: Api
           Properties:
-            RestApiId: !Ref MyApiGateway
-            Path: /example-api
+            Path: /reverse-string/{text}
             Method: GET
 
 Outputs:
-  ApiUrl:
-    Description: "API Gateway endpoint"
-    Value: !Sub "https://${MyApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+  ApiGatewayInvokeURL:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
