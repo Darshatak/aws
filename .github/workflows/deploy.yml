@@ -3,7 +3,7 @@ name: Deploy to AWS
 on:
   push:
     branches:
-      - Node2
+      - main
 
 jobs:
   deploy:
