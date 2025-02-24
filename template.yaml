@@ -1,10 +1,11 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Node.js Lambda with API Gateway
+Description: Node.js Lambda with API Gateway (Dev & Prod)
 
 Globals:
   Function:
     Timeout: 10
+    MemorySize: 128
 
 Parameters:
   Environment:
@@ -15,36 +16,36 @@ Parameters:
       - prod
 
 Resources:
-  DevLambdaFunction:
+  MyApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: my-api-gateway
+      StageName: !Ref Environment
+
+  MyLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: my-custom-api-dev
+      FunctionName: !Sub my-custom-api-${Environment}
       Handler: server.handler
       Runtime: nodejs18.x
       CodeUri: .
-      MemorySize: 128
       Policies:
         - AWSLambdaBasicExecutionRole
       Events:
-        Api:
+        CustomApi:
           Type: Api
           Properties:
+            RestApiId: !Ref MyApiGateway
             Path: /custom-api
+            Method: GET
+        ExampleApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApiGateway
+            Path: /example-api
             Method: GET
 
-  ProdLambdaFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: my-custom-api-prod
-      Handler: server.handler
-      Runtime: nodejs18.x
-      CodeUri: .
-      MemorySize: 128
-      Policies:
-        - AWSLambdaBasicExecutionRole
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /custom-api
-            Method: GET
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint"
+    Value: !Sub "https://${MyApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
