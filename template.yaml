@@ -1,17 +1,50 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: A simple SAM template for Lambda + API Gateway
+Description: Node.js Lambda with API Gateway
+
+Globals:
+  Function:
+    Timeout: 10
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
 
 Resources:
-  MyLambdaFunction:
+  DevLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: app.lambda_handler
-      Runtime: python3.9
+      FunctionName: my-custom-api-dev
+      Handler: server.handler
+      Runtime: nodejs18.x
       CodeUri: .
+      MemorySize: 128
+      Policies:
+        - AWSLambdaBasicExecutionRole
       Events:
-        ApiEvent:
+        Api:
           Type: Api
           Properties:
-            Path: /hello
-            Method: get
+            Path: /custom-api
+            Method: GET
+
+  ProdLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: my-custom-api-prod
+      Handler: server.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      MemorySize: 128
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /custom-api
+            Method: GET
