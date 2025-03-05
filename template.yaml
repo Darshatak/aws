@@ -933,14 +933,13 @@ Resources:
       FunctionName: get-fcm-token
       Description: "A lambda to handle Firebase Admin operations"
       Role: !GetAtt lambdaExecutionRole.Arn
+      BuildMethod: nodejs18.x
       Events:
         Api:
           Type: Api
           Properties:
             Path: "/get-fcm-token/{userId}"
             Method: GET
-      Metadata:
-        BuildMethod: nodejs18.x
 
   sendNotification:
     Type: AWS::Serverless::Function
@@ -950,11 +949,10 @@ Resources:
       FunctionName: send_notification
       Description: "A lambda to send Firebase notifications"
       Role: !GetAtt lambdaExecutionRole.Arn
+      BuildMethod: nodejs18.x
       Events:
         Api:
           Type: Api
           Properties:
             Path: "/send_notification"
             Method: POST
-      Metadata:
-        BuildMethod: nodejs18.x
