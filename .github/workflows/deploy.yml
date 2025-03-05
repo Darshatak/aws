@@ -27,20 +27,60 @@ jobs:
         run: |
           pip install aws-sam-cli
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+      - name: Install Tree (for debugging)
+        run: sudo apt-get install -y tree
+
+      - name: Setup Common Layer Structure
+        run: |
+          # Create the directory structure
+          mkdir -p src/layers/common-layer/nodejs/node_modules/common-layer
+
+          # Create package.json if it doesn't exist
+          if [ ! -f src/layers/common-layer/nodejs/node_modules/common-layer/package.json ]; then
+            echo '{
+              "name": "common-layer",
+              "version": "1.0.0",
+              "description": "Common code shared across lambda functions",
+              "main": "index.js",
+              "dependencies": {}
+            }' > src/layers/common-layer/nodejs/node_modules/common-layer/package.json
+          fi
+
+      - name: Setup Makefile
+        run: |
+          # Create the Makefile with proper content
+          echo '.PHONY: build-CommonLayer
+
+          build-CommonLayer:
+          	mkdir -p "$(ARTIFACTS_DIR)/nodejs"
+          	cp -r src/layers/common-layer/nodejs/node_modules/common-layer/* "$(ARTIFACTS_DIR)/nodejs/"' > src/layers/common-layer/Makefile
+
+          # Convert CRLF to LF
+          sed -i 's/\r$//' src/layers/common-layer/Makefile
+
+          # Fix permissions
+          chmod +x src/layers/common-layer/Makefile
+
+      - name: Verify Directory Structure
+        run: |
+          echo "Directory structure:"
+          tree src/layers || true
+
+          echo -e "\nMakefile content:"
+          cat src/layers/common-layer/Makefile
+
+      - name: Install Dependencies
+        run: |
+          # Install common layer dependencies
+          cd src/layers/common-layer/nodejs/node_modules/common-layer
+          npm install
+          cd ../../../../../..
+
+          # Install main project dependencies
+          npm install
 
       - name: Build and Deploy
+        env:
+          SAM_CLI_TELEMETRY: 0
         run: |
           sam build --parallel
-          sam deploy \
-            --no-confirm-changeset \
-            --stack-name khana-backend \
-            --resolve-s3 \
-            --capabilities CAPABILITY_IAM \
-            --parameter-overrides \
-              Environment=test
