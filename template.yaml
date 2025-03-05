@@ -925,7 +925,7 @@ Resources:
     Metadata:
       BuildMethod: nodejs18.x
 
-  get-fcm-token:
+  getFcmToken:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/handlers/getFCMToken
@@ -939,12 +939,10 @@ Resources:
           Properties:
             Path: "/get-fcm-token/{userId}"
             Method: GET
-      #Layers:
-      # - !Ref CommonCodeLayer
       Metadata:
         BuildMethod: nodejs18.x
 
-  send_notification:
+  sendNotification:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/handlers/send_notification
@@ -958,7 +956,5 @@ Resources:
           Properties:
             Path: "/send_notification"
             Method: POST
-      #Layers:
-      # - !Ref CommonCodeLayer
       Metadata:
         BuildMethod: nodejs18.x
